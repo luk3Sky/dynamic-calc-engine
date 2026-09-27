@@ -1,0 +1,5 @@
+{
+  "attributes": [
+    { "id": "grossTotal", "displayName": "Gross Total", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": 0 }
+  ]
+}

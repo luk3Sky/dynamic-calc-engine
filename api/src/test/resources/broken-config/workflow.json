@@ -1,0 +1,10 @@
+{
+  "stages": [
+    {
+      "name": "GROSS_TOTAL",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_DOES_NOT_EXIST"],
+      "execution": "SEQUENTIAL"
+    }
+  ]
+}
