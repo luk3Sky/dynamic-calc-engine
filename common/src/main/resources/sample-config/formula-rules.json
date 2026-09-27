@@ -35,7 +35,7 @@
       "name": "Transport Allowance",
       "description": "Fixed transport allowance as configured.",
       "priority": 1,
-      "condition": "true",
+      "condition": "transportAllowance > 0",
       "formula": "transportAllowance",
       "outputAttribute": "transportAllowanceTotal",
       "componentType": "EARNING"
@@ -45,7 +45,7 @@
       "name": "Meal Allowance",
       "description": "Fixed meal allowance as configured.",
       "priority": 2,
-      "condition": "true",
+      "condition": "mealAllowance > 0",
       "formula": "mealAllowance",
       "outputAttribute": "mealAllowanceTotal",
       "componentType": "EARNING"
@@ -62,10 +62,10 @@
     {
       "ruleId": "RULE_GROSS_TOTAL",
       "name": "Gross Total",
-      "description": "Sum of all earning components. Missing components default to 0 via MVEL elvis (?:).",
+      "description": "Sum of all earning components. Inapplicable components stay 0 via their attributes.json defaultValue.",
       "priority": 1,
       "condition": "true",
-      "formula": "(basePay ?: 0) + (overtimePay ?: 0) + (activityPay ?: 0) + totalAllowances",
+      "formula": "basePay + overtimePay + activityPay + totalAllowances",
       "outputAttribute": "grossTotal"
     },
     {
@@ -73,7 +73,7 @@
       "name": "Income Tax",
       "description": "Income tax computed from the slab rate classified by Drools in the TAX_SLAB_DETERMINATION stage.",
       "priority": 1,
-      "condition": "taxSlab != null && incomeTaxRate > 0",
+      "condition": "incomeTaxRate > 0",
       "formula": "grossTotal * incomeTaxRate",
       "outputAttribute": "incomeTax",
       "componentType": "DEDUCTION"
@@ -94,7 +94,7 @@
       "description": "Sum of all deduction components.",
       "priority": 3,
       "condition": "true",
-      "formula": "(incomeTax ?: 0) + (providentFund ?: 0)",
+      "formula": "incomeTax + providentFund",
       "outputAttribute": "totalDeductions"
     },
     {
