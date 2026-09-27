@@ -83,12 +83,4 @@ public abstract class AdminSectionController {
                 ? Map.of()
                 : AdminForms.groupErrorsByKey(validationErrors));
     }
-
-    /** Human-friendly string of the current config location for page footers. */
-    protected String formatInstant(java.time.Instant instant) {
-        return instant == null ? "—" : java.time.format.DateTimeFormatter
-                .ofPattern("yyyy-MM-dd HH:mm:ss")
-                .withZone(java.time.ZoneId.systemDefault())
-                .format(instant);
-    }
 }
