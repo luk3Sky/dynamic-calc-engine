@@ -24,7 +24,7 @@
             </tr>
             </thead>
             <tbody id="attributeRows">
-            <tr th:each="attr, stat : ${form.attributes}">
+            <tr th:each="attr, stat : ${form.attributes}" data-dv-row>
                 <td>
                     <input type="text" th:field="*{attributes[__${stat.index}__].id}"
                            th:classappend="${errorsByKey['ATTRIBUTES::' + attr.id + '::id']} ? 'invalid'"/>
@@ -34,7 +34,7 @@
                 </td>
                 <td><input type="text" th:field="*{attributes[__${stat.index}__].displayName}"/></td>
                 <td>
-                    <select th:field="*{attributes[__${stat.index}__].dataType}"
+                    <select th:field="*{attributes[__${stat.index}__].dataType}" data-dv-select
                             onchange="updateDefaultValue(this.closest('tr'), this.value)">
                         <option th:each="dt : ${dataTypes}" th:value="${dt.name()}" th:text="${dt.name()}">NUMBER</option>
                     </select>
@@ -80,13 +80,13 @@
     </form>
 
     <template id="attributeRowTemplate">
-        <tr>
+        <tr data-dv-row>
             <td>
                 <input type="text" name="attributes[__IDX__].id" placeholder="attributeId"/>
             </td>
             <td><input type="text" name="attributes[__IDX__].displayName"/></td>
             <td>
-                <select name="attributes[__IDX__].dataType" onchange="updateDefaultValue(this.closest('tr'), this.value)">
+                <select name="attributes[__IDX__].dataType" data-dv-select onchange="updateDefaultValue(this.closest('tr'), this.value)">
                     <option th:each="dt : ${dataTypes}" th:value="${dt.name()}" th:text="${dt.name()}">NUMBER</option>
                 </select>
             </td>
@@ -112,20 +112,6 @@
 </main>
 
 <script th:replace="~{admin/layout :: scripts}"></script>
-<script>
-    function updateDefaultValue(row, dataType) {
-        row.querySelectorAll('[data-dv-kind]').forEach(function (c) {
-            c.classList.toggle('hidden', c.getAttribute('data-dv-kind') !== dataType.toLowerCase());
-        });
-    }
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('#attributeRows tr').forEach(function (row) {
-            var sel = row.querySelector('select[name*=".dataType"], [id$=".dataType"]');
-            var dt = row.querySelector('[data-dv-kind]:not(.hidden)');
-            if (sel) updateDefaultValue(row, sel.value);
-        });
-    });
-</script>
 <footer th:replace="~{admin/layout :: footer}"></footer>
 </body>
 </html>

@@ -38,6 +38,11 @@ public final class AdminForms {
         if (raw == null || raw.isBlank()) {
             return NODES.nullNode();
         }
+        if (dataType == null) {
+            // attribute not declared (or not yet chosen): keep the raw text so
+            // ConfigValidator can report the unresolved reference with context
+            return NODES.textNode(raw);
+        }
         return switch (dataType) {
             case NUMBER -> NODES.numberNode(new BigDecimal(raw.trim()));
             case STRING -> NODES.textNode(raw);
