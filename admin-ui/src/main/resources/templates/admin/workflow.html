@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Workflow')}"></head>
+<body>
+<header th:replace="~{admin/layout :: header('workflow')}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/layout :: errors-summary}"></div>
+
+    <h2>Workflow</h2>
+    <p class="muted">Stages run top-to-bottom. Use the up/down buttons to reorder (the change is applied once you
+        Validate/Apply/Save). ruleIds must exist in the owning engine's rule set and no stage may be left empty —
+        both are enforced by validation.</p>
+
+    <form th:action="@{/admin/workflow}" method="post">
+        <div class="repeatable" id="workflowStages">
+            <div class="repeatable-row card" th:each="stage, stat : ${workflowForm.stages}">
+                <div class="row">
+                    <button type="submit" name="action" th:value="|moveUp:${stat.index}|" class="small" title="Move up">↑</button>
+                    <button type="submit" name="action" th:value="|moveDown:${stat.index}|" class="small" title="Move down">↓</button>
+                    <span class="muted" th:text="'#' + ${stat.index}">#0</span>
+                    <label>name</label>
+                    <input type="text" name="stages[__${stat.index}__].name" th:value="${stage.name}" style="width:200px"/>
+                    <label>engine</label>
+                    <select name="stages[__${stat.index}__].engine" style="width:130px">
+                        <option th:each="e : ${T(com.payroll.common.config.EngineType).values()}" th:value="${e.name()}"
+                                th:text="${e.name()}" th:selected="${stage.engine == e.name()}">FORMULA</option>
+                    </select>
+                    <label>execution</label>
+                    <select name="stages[__${stat.index}__].execution" style="width:130px">
+                        <option th:each="x : ${stageExecutions}" th:value="${x.name()}" th:text="${x.name()}"
+                                th:selected="${stage.execution == x.name()}">SEQUENTIAL</option>
+                    </select>
+                </div>
+                <div class="row" style="margin-top:0.5rem">
+                    <label>description</label>
+                    <input type="text" name="stages[__${stat.index}__].description" th:value="${stage.description}" style="flex:1"/>
+                    <label class="muted"><input type="checkbox" name="stages[__${stat.index}__].deleted" th:checked="${stage.deleted}"/> delete</label>
+                </div>
+                <div style="margin-top:0.5rem">
+                    <label>ruleIds (multi-select)</label>
+                    <select multiple name="stages[__${stat.index}__].ruleIds" style="width:100%; height:110px">
+                        <optgroup label="Eligibility rules">
+                            <option th:each="r : ${eligibilityRules}" th:value="${r.ruleId}" th:text="${r.ruleId}"
+                                    th:selected="${stage.ruleIds != null ? stage.ruleIds.contains(r.ruleId) : false}">RULE</option>
+                        </optgroup>
+                        <optgroup label="Formula rules">
+                            <option th:each="r : ${formulaRules}" th:value="${r.ruleId}" th:text="${r.ruleId}"
+                                    th:selected="${stage.ruleIds != null ? stage.ruleIds.contains(r.ruleId) : false}">RULE</option>
+                        </optgroup>
+                    </select>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['WORKFLOW::' + stage.name + '::ruleIds']}"
+                          th:text="${e.message}"></span>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['WORKFLOW::' + stage.name + '::name']}"
+                          th:text="${e.message}"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" onclick="addRepeatable('workflowStageTemplate', '#workflowStages')">Add stage</button>
+        </div>
+
+        <div th:replace="~{admin/layout :: persist-actions('/admin/workflow')}"></div>
+    </form>
+
+    <template id="workflowStageTemplate">
+        <div class="repeatable-row card">
+            <div class="row">
+                <span class="muted">#__IDX__</span>
+                <label>name</label>
+                <input type="text" name="stages[__IDX__].name" style="width:200px"/>
+                <label>engine</label>
+                <select name="stages[__IDX__].engine" style="width:130px">
+                    <option th:each="e : ${T(com.payroll.common.config.EngineType).values()}" th:value="${e.name()}" th:text="${e.name()}">FORMULA</option>
+                </select>
+                <label>execution</label>
+                <select name="stages[__IDX__].execution" style="width:130px">
+                    <option th:each="x : ${stageExecutions}" th:value="${x.name()}" th:text="${x.name()}">SEQUENTIAL</option>
+                </select>
+            </div>
+            <div class="row" style="margin-top:0.5rem">
+                <label>description</label>
+                <input type="text" name="stages[__IDX__].description" style="flex:1"/>
+                <label class="muted"><input type="checkbox" name="stages[__IDX__].deleted"/> delete</label>
+            </div>
+            <div style="margin-top:0.5rem">
+                <label>ruleIds (multi-select)</label>
+                <select multiple name="stages[__IDX__].ruleIds" style="width:100%; height:110px">
+                    <optgroup label="Eligibility rules">
+                        <option th:each="r : ${eligibilityRules}" th:value="${r.ruleId}" th:text="${r.ruleId}">RULE</option>
+                    </optgroup>
+                    <optgroup label="Formula rules">
+                        <option th:each="r : ${formulaRules}" th:value="${r.ruleId}" th:text="${r.ruleId}">RULE</option>
+                    </optgroup>
+                </select>
+            </div>
+            <div class="actions" style="margin-top:0.5rem">
+                <button type="button" class="small danger" onclick="removeRepeatable(this)">remove stage</button>
+            </div>
+        </div>
+    </template>
+</main>
+
+<script th:replace="~{admin/layout :: scripts}"></script>
+<footer th:replace="~{admin/layout :: footer}"></footer>
+</body>
+</html>

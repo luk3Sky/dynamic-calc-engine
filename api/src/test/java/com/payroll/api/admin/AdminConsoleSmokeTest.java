@@ -112,6 +112,37 @@ class AdminConsoleSmokeTest {
                 .andExpect(redirectedUrl("/admin/formula-rules"));
     }
 
+    @Test
+    void workflowEditorRenders() throws Exception {
+        mockMvc.perform(get("/admin/workflow"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/workflow"));
+    }
+
+    @Test
+    void workflowFormPostsAndApplies() throws Exception {
+        mockMvc.perform(post("/admin/workflow")
+                        .param("action", "apply")
+                        .param("stages[0].name", "INITIAL_ELIGIBILITY")
+                        .param("stages[0].description", "Classify overtime and activity-bonus eligibility before any formula runs.")
+                        .param("stages[0].engine", "ELIGIBILITY")
+                        .param("stages[0].execution", "SEQUENTIAL")
+                        .param("stages[0].ruleIds", "RULE_OVERTIME_ELIGIBLE")
+                        .param("stages[0].ruleIds", "RULE_ACTIVITY_BONUS_ELIGIBLE")
+                        .param("stages[1].name", "BASE_PAY")
+                        .param("stages[1].description", "Compute regular base pay.")
+                        .param("stages[1].engine", "FORMULA")
+                        .param("stages[1].execution", "SEQUENTIAL")
+                        .param("stages[1].ruleIds", "RULE_BASE_PAY")
+                        .param("stages[2].name", "OVERTIME")
+                        .param("stages[2].description", "Compute overtime premium pay.")
+                        .param("stages[2].engine", "FORMULA")
+                        .param("stages[2].execution", "SEQUENTIAL")
+                        .param("stages[2].ruleIds", "RULE_OVERTIME_PAY"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/workflow"));
+    }
+
     private MockHttpServletRequestBuilder attributesForm(String action) {
         PayrollConfig config = new JacksonConfigLoaderService().loadConfig();
         MockHttpServletRequestBuilder request = post("/admin/attributes").param("action", action);
