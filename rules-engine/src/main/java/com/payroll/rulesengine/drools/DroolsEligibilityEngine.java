@@ -1,26 +1,21 @@
 package com.payroll.rulesengine.drools;
 
 import com.payroll.common.domain.CalculationContext;
-import com.payroll.common.config.EligibilityRuleConfig;
+import com.payroll.rulesengine.config.ConfigRuntime;
 import com.payroll.rulesengine.orchestration.EligibilityEvaluationException;
-import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import org.drools.core.base.RuleNameMatchesAgendaFilter;
-import org.kie.api.KieServices;
-import org.kie.api.builder.KieBuilder;
-import org.kie.api.builder.KieFileSystem;
-import org.kie.api.builder.KieModule;
-import org.kie.api.builder.Message;
-import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 
 /**
  * Runtime Drools engine for eligibility/classification rules.
  *
- * <p>The generated DRL is compiled once into a cached {@link KieBase} at
- * construction (config-load time), which is the performance requirement: rule
- * compilation is expensive and must never happen per request.
+ * <p>The compiled {@link org.kie.api.runtime.KieContainer} is not owned by this
+ * engine: it lives inside the active {@link ConfigRuntime} generation and is
+ * re-read on every invocation. When the admin console calls
+ * {@link ConfigRuntime#reload} a fresh KieContainer is compiled and swapped in,
+ * so the next request here already evaluates the new rules.
  *
  * <p>A fresh {@link KieSession} is created per calculation request rather than
  * pooled: a KieSession holds mutable working-memory state and is not
@@ -34,11 +29,10 @@ import org.kie.api.runtime.KieSession;
  */
 public class DroolsEligibilityEngine {
 
-    private final KieContainer kieContainer;
+    private final ConfigRuntime runtime;
 
-    public DroolsEligibilityEngine(List<EligibilityRuleConfig> rules) {
-        String drl = new EligibilityRuleCompiler().compile(rules);
-        this.kieContainer = buildKieContainer(drl);
+    public DroolsEligibilityEngine(ConfigRuntime runtime) {
+        this.runtime = runtime;
     }
 
     /** Fires all eligibility rules against the context and returns it enriched. */
@@ -48,7 +42,7 @@ public class DroolsEligibilityEngine {
 
     /** Fires only the given ruleIds (empty means all rules). */
     public CalculationContext runRules(CalculationContext context, Collection<String> ruleIds) {
-        KieSession session = kieContainer.newKieSession();
+        KieSession session = runtime.get().getKieContainer().newKieSession();
         try {
             session.insert(context);
             if (ruleIds == null || ruleIds.isEmpty()) {
@@ -64,20 +58,5 @@ public class DroolsEligibilityEngine {
             session.dispose();
         }
         return context;
-    }
-
-    private KieContainer buildKieContainer(String drl) {
-        KieServices kieServices = KieServices.get();
-        KieFileSystem fileSystem = kieServices.newKieFileSystem()
-                .write("src/main/resources/eligibility-generated.drl",
-                        kieServices.getResources().newByteArrayResource(drl.getBytes(StandardCharsets.UTF_8)));
-
-        KieBuilder kieBuilder = kieServices.newKieBuilder(fileSystem).buildAll();
-        if (kieBuilder.getResults().hasMessages(Message.Level.ERROR)) {
-            throw new EligibilityEvaluationException("Failed to compile generated Drools eligibility rules: "
-                    + kieBuilder.getResults().getMessages(Message.Level.ERROR));
-        }
-        KieModule kieModule = kieBuilder.getKieModule();
-        return kieServices.newKieContainer(kieModule.getReleaseId());
     }
 }

@@ -3,9 +3,10 @@ package com.payroll.api.web;
 import com.payroll.api.web.dto.ConfigRulesView;
 import com.payroll.api.web.dto.PayrollCalculationRequest;
 import com.payroll.common.config.AttributeConfig;
-import com.payroll.common.config.ConfigLoaderService;
+import com.payroll.common.config.PayrollConfig;
 import com.payroll.common.domain.CalculationContext;
 import com.payroll.common.domain.PayrollResult;
+import com.payroll.rulesengine.config.ConfigRuntime;
 import com.payroll.rulesengine.orchestration.PayrollCalculationOrchestrator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Read/write payroll API. Calculation is stateless: every request is computed
- * from the request body against the JSON configuration loaded at startup.
+ * from the request body against the configuration currently held by
+ * {@link ConfigRuntime} — the same shared, mutable state the admin console
+ * edits with "Apply to Runtime".
  */
 @RestController
 @RequestMapping("/api/v1/payroll")
@@ -28,15 +31,15 @@ public class PayrollController {
 
     private final PayrollCalculationOrchestrator orchestrator;
     private final PayrollCalculationAssembler assembler;
-    private final ConfigLoaderService configLoader;
+    private final ConfigRuntime configRuntime;
 
     public PayrollController(
             PayrollCalculationOrchestrator orchestrator,
             PayrollCalculationAssembler assembler,
-            ConfigLoaderService configLoader) {
+            ConfigRuntime configRuntime) {
         this.orchestrator = orchestrator;
         this.assembler = assembler;
-        this.configLoader = configLoader;
+        this.configRuntime = configRuntime;
     }
 
     @PostMapping("/calculate")
@@ -50,12 +53,13 @@ public class PayrollController {
     @GetMapping("/config/attributes")
     @Operation(summary = "List declared attributes", description = "Read-only attribute dictionary for low-code UI introspection.")
     public List<AttributeConfig> attributes() {
-        return configLoader.getAttributes();
+        return configRuntime.getConfig().getAttributes();
     }
 
     @GetMapping("/config/rules")
     @Operation(summary = "List loaded eligibility and formula rules", description = "Read-only rules for low-code UI introspection.")
     public ConfigRulesView rules() {
-        return new ConfigRulesView(configLoader.getEligibilityRules(), configLoader.getFormulaRules());
+        PayrollConfig config = configRuntime.getConfig();
+        return new ConfigRulesView(config.getEligibilityRules(), config.getFormulaRules());
     }
 }

@@ -4,16 +4,20 @@ import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 /**
  * Immutable bundle of the four configuration files, assembled and validated at
  * startup by {@link ConfigLoaderService}. Its getters are also the read-only
- * projection served to the future low-code UI.
+ * projection served to the low-code UI. Value equality (via {@code equals})
+ * lets the admin dashboard detect when the in-memory config diverges from what
+ * is currently on disk.
  */
 @Getter
 @Builder
 @AllArgsConstructor
+@EqualsAndHashCode
 public class PayrollConfig {
 
     private final List<AttributeConfig> attributes;

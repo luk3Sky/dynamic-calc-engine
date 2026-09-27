@@ -3,11 +3,13 @@ package com.payroll.rulesengine.orchestration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.payroll.common.config.ConfigLoaderService;
+import com.payroll.common.config.ConfigValidator;
 import com.payroll.common.config.JacksonConfigLoaderService;
 import com.payroll.common.domain.CalculationContext;
 import com.payroll.common.domain.PayComponent;
 import com.payroll.common.domain.PayPeriod;
 import com.payroll.common.domain.PayrollResult;
+import com.payroll.rulesengine.config.ConfigRuntime;
 import com.payroll.rulesengine.drools.DroolsEligibilityEngine;
 import com.payroll.rulesengine.jeasy.WorkflowExecutor;
 import java.math.BigDecimal;
@@ -29,10 +31,11 @@ class PayrollCalculationOrchestratorTest {
     @BeforeAll
     static void setUp() {
         configLoader = new JacksonConfigLoaderService();
+        ConfigRuntime runtime = new ConfigRuntime(configLoader.loadConfig(), new ConfigValidator());
         orchestrator = new PayrollCalculationOrchestrator(
-                configLoader,
-                new DroolsEligibilityEngine(configLoader.getEligibilityRules()),
-                new WorkflowExecutor(configLoader));
+                runtime,
+                new DroolsEligibilityEngine(runtime),
+                new WorkflowExecutor(runtime));
     }
 
     @Test

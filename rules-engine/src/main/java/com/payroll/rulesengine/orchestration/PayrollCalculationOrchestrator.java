@@ -1,10 +1,11 @@
 package com.payroll.rulesengine.orchestration;
 
-import com.payroll.common.config.ConfigLoaderService;
 import com.payroll.common.config.EngineType;
+import com.payroll.common.config.PayrollConfig;
 import com.payroll.common.config.WorkflowStage;
 import com.payroll.common.domain.CalculationContext;
 import com.payroll.common.domain.PayrollResult;
+import com.payroll.rulesengine.config.ConfigRuntime;
 import com.payroll.rulesengine.drools.DroolsEligibilityEngine;
 import com.payroll.rulesengine.jeasy.WorkflowExecutor;
 import java.math.BigDecimal;
@@ -24,26 +25,32 @@ import java.math.BigDecimal;
  * lightweight Drools pass (TAX_SLAB_DETERMINATION) is just another stage that
  * runs after GROSS_TOTAL, which is how the slab-depends-on-gross circular
  * dependency is resolved without ad-hoc Java logic.
+ *
+ * <p>Every read goes through {@link ConfigRuntime}, the single shared holder
+ * the admin console writes to with "Apply to Runtime". A reload there therefore
+ * changes what the very next {@link #calculate} call does, without any
+ * restart.
  */
 public class PayrollCalculationOrchestrator {
 
-    private final ConfigLoaderService configLoader;
+    private final ConfigRuntime runtime;
     private final DroolsEligibilityEngine droolsEngine;
     private final WorkflowExecutor workflowExecutor;
 
     public PayrollCalculationOrchestrator(
-            ConfigLoaderService configLoader,
+            ConfigRuntime runtime,
             DroolsEligibilityEngine droolsEngine,
             WorkflowExecutor workflowExecutor) {
-        this.configLoader = configLoader;
+        this.runtime = runtime;
         this.droolsEngine = droolsEngine;
         this.workflowExecutor = workflowExecutor;
     }
 
     public PayrollResult calculate(CalculationContext context) {
-        ContextDefaults.apply(context, configLoader.loadConfig());
+        PayrollConfig config = runtime.getConfig();
+        ContextDefaults.apply(context, config);
 
-        for (WorkflowStage stage : configLoader.getWorkflowStages()) {
+        for (WorkflowStage stage : config.getStages()) {
             if (stage.getEngine() == EngineType.ELIGIBILITY) {
                 droolsEngine.runRules(context, stage.getRuleIds());
             } else {

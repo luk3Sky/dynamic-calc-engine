@@ -1,6 +1,7 @@
 package com.payroll.rulesengine.config;
 
 import com.payroll.common.config.ConfigLoaderService;
+import com.payroll.common.config.ConfigValidator;
 import com.payroll.common.config.JacksonConfigLoaderService;
 import com.payroll.rulesengine.drools.DroolsEligibilityEngine;
 import com.payroll.rulesengine.jeasy.WorkflowExecutor;
@@ -10,9 +11,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Wires the JSON config and both rule engines as Spring beans. The Drools
- * KieBase is compiled once here (at startup) and cached for the life of the
- * application; only a KieSession is created per request.
+ * Wires the JSON config and both rule engines as Spring beans.
+ *
+ * <p>{@link ConfigRuntime} is the shared, mutable, thread-safe holder for the
+ * currently active config generation (Drools KieBase + jEasy rule sets). It is
+ * compiled once here at startup and recompiled in place whenever the admin
+ * console calls {@code reload} — the orchestrator and the admin UI read from
+ * and write to this single instance, so a live reload changes the next
+ * calculation without a restart.
  */
 @Configuration
 public class RuleEngineConfig {
@@ -24,20 +30,30 @@ public class RuleEngineConfig {
     }
 
     @Bean
-    public DroolsEligibilityEngine droolsEligibilityEngine(ConfigLoaderService configLoader) {
-        return new DroolsEligibilityEngine(configLoader.getEligibilityRules());
+    public ConfigValidator configValidator() {
+        return new ConfigValidator();
     }
 
     @Bean
-    public WorkflowExecutor workflowExecutor(ConfigLoaderService configLoader) {
-        return new WorkflowExecutor(configLoader);
+    public ConfigRuntime configRuntime(ConfigLoaderService configLoader, ConfigValidator configValidator) {
+        return new ConfigRuntime(configLoader.loadConfig(), configValidator);
+    }
+
+    @Bean
+    public DroolsEligibilityEngine droolsEligibilityEngine(ConfigRuntime configRuntime) {
+        return new DroolsEligibilityEngine(configRuntime);
+    }
+
+    @Bean
+    public WorkflowExecutor workflowExecutor(ConfigRuntime configRuntime) {
+        return new WorkflowExecutor(configRuntime);
     }
 
     @Bean
     public PayrollCalculationOrchestrator payrollCalculationOrchestrator(
-            ConfigLoaderService configLoader,
+            ConfigRuntime configRuntime,
             DroolsEligibilityEngine droolsEligibilityEngine,
             WorkflowExecutor workflowExecutor) {
-        return new PayrollCalculationOrchestrator(configLoader, droolsEligibilityEngine, workflowExecutor);
+        return new PayrollCalculationOrchestrator(configRuntime, droolsEligibilityEngine, workflowExecutor);
     }
 }

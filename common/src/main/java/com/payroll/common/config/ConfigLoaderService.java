@@ -17,6 +17,16 @@ public interface ConfigLoaderService {
     /** Returns the loaded (and validated) configuration. Cached by implementations. */
     PayrollConfig loadConfig();
 
+    /**
+     * Re-reads and re-validates the configuration from its source location and
+     * returns the fresh config. Implementations that cache (such as the
+     * Jackson loader) must invalidate their cache. Used by the admin console to
+     * discard unsaved in-memory edits by reloading from disk.
+     */
+    default PayrollConfig reload() {
+        return loadConfig();
+    }
+
     default List<AttributeConfig> getAttributes() {
         return loadConfig().getAttributes();
     }

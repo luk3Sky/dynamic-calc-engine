@@ -3,9 +3,11 @@ package com.payroll.rulesengine.jeasy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.payroll.common.config.ConfigLoaderService;
+import com.payroll.common.config.ConfigValidator;
 import com.payroll.common.config.JacksonConfigLoaderService;
 import com.payroll.common.config.WorkflowStage;
 import com.payroll.common.domain.CalculationContext;
+import com.payroll.rulesengine.config.ConfigRuntime;
 import com.payroll.rulesengine.orchestration.ContextDefaults;
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,7 +27,8 @@ class WorkflowExecutorTest {
     @BeforeAll
     static void setUp() {
         configLoader = new JacksonConfigLoaderService();
-        executor = new WorkflowExecutor(configLoader);
+        ConfigRuntime runtime = new ConfigRuntime(configLoader.loadConfig(), new ConfigValidator());
+        executor = new WorkflowExecutor(runtime);
     }
 
     @Test

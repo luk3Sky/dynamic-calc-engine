@@ -28,13 +28,16 @@ public class JacksonConfigLoaderService implements ConfigLoaderService {
     private static final String FORMULA_RULES = "formula-rules.json";
     private static final String WORKFLOW = "workflow.json";
 
-    private final PayrollConfig config;
+    private final String location;
+    private final ConfigValidator validator = new ConfigValidator();
+    private volatile PayrollConfig config;
 
     public JacksonConfigLoaderService() {
         this(DEFAULT_LOCATION);
     }
 
     public JacksonConfigLoaderService(String configLocation) {
+        this.location = configLocation;
         this.config = readAndValidate(configLocation);
     }
 
@@ -60,7 +63,7 @@ public class JacksonConfigLoaderService implements ConfigLoaderService {
                     .formulaRules(formulaRules)
                     .stages(stages)
                     .build();
-            PayrollConfigValidator.validate(config);
+            validator.validate(config).throwIfInvalid();
             return config;
         } catch (ConfigValidationException e) {
             throw e;
@@ -97,5 +100,11 @@ public class JacksonConfigLoaderService implements ConfigLoaderService {
     @Override
     public PayrollConfig loadConfig() {
         return config;
+    }
+
+    @Override
+    public synchronized PayrollConfig reload() {
+        this.config = readAndValidate(location);
+        return this.config;
     }
 }

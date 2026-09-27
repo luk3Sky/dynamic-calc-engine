@@ -2,8 +2,10 @@ package com.payroll.rulesengine.drools;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.payroll.common.config.ConfigValidator;
 import com.payroll.common.config.JacksonConfigLoaderService;
 import com.payroll.common.domain.CalculationContext;
+import com.payroll.rulesengine.config.ConfigRuntime;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
@@ -20,7 +22,9 @@ class DroolsEligibilityEngineTest {
 
     @BeforeAll
     static void compileOnce() {
-        engine = new DroolsEligibilityEngine(new JacksonConfigLoaderService().getEligibilityRules());
+        ConfigRuntime runtime = new ConfigRuntime(
+                new JacksonConfigLoaderService().loadConfig(), new ConfigValidator());
+        engine = new DroolsEligibilityEngine(runtime);
     }
 
     @Test
