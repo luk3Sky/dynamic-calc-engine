@@ -3,6 +3,7 @@ package com.payroll.common.config;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -41,6 +42,7 @@ public class JacksonConfigLoaderService implements ConfigLoaderService {
         try {
             ObjectMapper mapper = new ObjectMapper()
                     .enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS)
+                    .setNodeFactory(JsonNodeFactory.withExactBigDecimals(true))
                     .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
             List<AttributeConfig> attributes =
