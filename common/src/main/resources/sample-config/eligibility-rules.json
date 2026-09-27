@@ -1,0 +1,46 @@
+{
+  "rules": [
+    {
+      "ruleId": "RULE_OVERTIME_ELIGIBLE",
+      "description": "Full-time employees at grade 4 or above qualify for overtime premium pay.",
+      "conditions": [
+        { "attribute": "employmentType", "operator": "EQUALS", "value": "FULL_TIME" },
+        { "attribute": "employeeGrade", "operator": "GREATER_THAN", "value": 3 }
+      ],
+      "derivedFacts": { "overtimeEligible": true }
+    },
+    {
+      "ruleId": "RULE_ACTIVITY_BONUS_ELIGIBLE",
+      "description": "Employees performing a bonus-eligible activity type with recorded units qualify for activity pay.",
+      "conditions": [
+        { "attribute": "activityType", "operator": "IN", "value": ["DELIVERY", "SALES_UNIT", "PIECEWORK"] },
+        { "attribute": "activityUnits", "operator": "GREATER_THAN", "value": 0 }
+      ],
+      "derivedFacts": { "activityBonusEligible": true }
+    },
+    {
+      "ruleId": "RULE_TAX_SLAB_LOW",
+      "description": "Gross pay from 0 to 1200.00 falls in slab SLAB_1 with a 0% income tax rate.",
+      "conditions": [
+        { "attribute": "grossTotal", "operator": "BETWEEN", "value": [0, 1200] }
+      ],
+      "derivedFacts": { "taxSlab": "SLAB_1", "incomeTaxRate": 0 }
+    },
+    {
+      "ruleId": "RULE_TAX_SLAB_MID",
+      "description": "Gross pay from 1200.01 to 4000.00 falls in slab SLAB_2 with a 10% income tax rate.",
+      "conditions": [
+        { "attribute": "grossTotal", "operator": "BETWEEN", "value": [1200.01, 4000] }
+      ],
+      "derivedFacts": { "taxSlab": "SLAB_2", "incomeTaxRate": 0.10 }
+    },
+    {
+      "ruleId": "RULE_TAX_SLAB_HIGH",
+      "description": "Gross pay above 4000.00 falls in slab SLAB_3 with a 20% income tax rate.",
+      "conditions": [
+        { "attribute": "grossTotal", "operator": "GREATER_THAN", "value": 4000 }
+      ],
+      "derivedFacts": { "taxSlab": "SLAB_3", "incomeTaxRate": 0.20 }
+    }
+  ]
+}

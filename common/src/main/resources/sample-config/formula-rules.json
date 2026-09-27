@@ -1,0 +1,110 @@
+{
+  "rules": [
+    {
+      "ruleId": "RULE_BASE_PAY",
+      "name": "Base Pay",
+      "description": "Regular pay for standard hours worked.",
+      "priority": 1,
+      "condition": "standardHours > 0",
+      "formula": "hourlyRate * standardHours",
+      "outputAttribute": "basePay",
+      "componentType": "EARNING"
+    },
+    {
+      "ruleId": "RULE_OVERTIME_PAY",
+      "name": "Overtime Pay",
+      "description": "Premium pay at the configured multiplier for eligible overtime hours.",
+      "priority": 2,
+      "condition": "overtimeEligible == true && overtimeHours > 0",
+      "formula": "hourlyRate * overtimeHours * overtimeMultiplier",
+      "outputAttribute": "overtimePay",
+      "componentType": "EARNING"
+    },
+    {
+      "ruleId": "RULE_ACTIVITY_PAY",
+      "name": "Activity Pay",
+      "description": "Piece/unit compensation for eligible activity work.",
+      "priority": 3,
+      "condition": "activityBonusEligible == true",
+      "formula": "activityUnits * activityUnitRate",
+      "outputAttribute": "activityPay",
+      "componentType": "EARNING"
+    },
+    {
+      "ruleId": "RULE_TRANSPORT_ALLOWANCE",
+      "name": "Transport Allowance",
+      "description": "Fixed transport allowance as configured.",
+      "priority": 1,
+      "condition": "true",
+      "formula": "transportAllowance",
+      "outputAttribute": "transportAllowanceTotal",
+      "componentType": "EARNING"
+    },
+    {
+      "ruleId": "RULE_MEAL_ALLOWANCE",
+      "name": "Meal Allowance",
+      "description": "Fixed meal allowance as configured.",
+      "priority": 2,
+      "condition": "true",
+      "formula": "mealAllowance",
+      "outputAttribute": "mealAllowanceTotal",
+      "componentType": "EARNING"
+    },
+    {
+      "ruleId": "RULE_TOTAL_ALLOWANCES",
+      "name": "Total Allowances",
+      "description": "Sum of all allowance line items.",
+      "priority": 3,
+      "condition": "true",
+      "formula": "transportAllowanceTotal + mealAllowanceTotal",
+      "outputAttribute": "totalAllowances"
+    },
+    {
+      "ruleId": "RULE_GROSS_TOTAL",
+      "name": "Gross Total",
+      "description": "Sum of all earning components. Missing components default to 0 via MVEL elvis (?:).",
+      "priority": 1,
+      "condition": "true",
+      "formula": "(basePay ?: 0) + (overtimePay ?: 0) + (activityPay ?: 0) + totalAllowances",
+      "outputAttribute": "grossTotal"
+    },
+    {
+      "ruleId": "RULE_INCOME_TAX",
+      "name": "Income Tax",
+      "description": "Income tax computed from the slab rate classified by Drools in the TAX_SLAB_DETERMINATION stage.",
+      "priority": 1,
+      "condition": "taxSlab != null && incomeTaxRate > 0",
+      "formula": "grossTotal * incomeTaxRate",
+      "outputAttribute": "incomeTax",
+      "componentType": "DEDUCTION"
+    },
+    {
+      "ruleId": "RULE_PROVIDENT_FUND",
+      "name": "Provident Fund",
+      "description": "Statutory provident-fund deduction for full-time employees.",
+      "priority": 2,
+      "condition": "employmentType == 'FULL_TIME'",
+      "formula": "basePay * providentFundRate",
+      "outputAttribute": "providentFund",
+      "componentType": "DEDUCTION"
+    },
+    {
+      "ruleId": "RULE_TOTAL_DEDUCTIONS",
+      "name": "Total Deductions",
+      "description": "Sum of all deduction components.",
+      "priority": 3,
+      "condition": "true",
+      "formula": "(incomeTax ?: 0) + (providentFund ?: 0)",
+      "outputAttribute": "totalDeductions"
+    },
+    {
+      "ruleId": "RULE_NET_PAY",
+      "name": "Net Pay",
+      "description": "Final take-home pay.",
+      "priority": 1,
+      "condition": "true",
+      "formula": "grossTotal - totalDeductions",
+      "outputAttribute": "netPay"
+    }
+  ]
+}

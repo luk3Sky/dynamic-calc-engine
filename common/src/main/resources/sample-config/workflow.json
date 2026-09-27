@@ -1,0 +1,67 @@
+{
+  "stages": [
+    {
+      "name": "INITIAL_ELIGIBILITY",
+      "description": "Classify overtime and activity-bonus eligibility before any formula runs.",
+      "engine": "ELIGIBILITY",
+      "ruleIds": ["RULE_OVERTIME_ELIGIBLE", "RULE_ACTIVITY_BONUS_ELIGIBLE"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "BASE_PAY",
+      "description": "Compute regular base pay.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_BASE_PAY"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "OVERTIME",
+      "description": "Compute overtime premium pay.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_OVERTIME_PAY"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "ACTIVITY_PAY",
+      "description": "Compute activity/unit pay.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_ACTIVITY_PAY"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "ALLOWANCES",
+      "description": "Compute allowances and their total.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_TRANSPORT_ALLOWANCE", "RULE_MEAL_ALLOWANCE", "RULE_TOTAL_ALLOWANCES"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "GROSS_TOTAL",
+      "description": "Compute gross pay now that all earning components exist.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_GROSS_TOTAL"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "TAX_SLAB_DETERMINATION",
+      "description": "Second, lightweight Drools pass: classify the tax slab from grossTotal, resolving the slab-gross circular dependency.",
+      "engine": "ELIGIBILITY",
+      "ruleIds": ["RULE_TAX_SLAB_LOW", "RULE_TAX_SLAB_MID", "RULE_TAX_SLAB_HIGH"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "STATUTORY_DEDUCTIONS",
+      "description": "Compute statutory deductions using the classified slab rate.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_INCOME_TAX", "RULE_PROVIDENT_FUND", "RULE_TOTAL_DEDUCTIONS"],
+      "execution": "SEQUENTIAL"
+    },
+    {
+      "name": "NET_PAY",
+      "description": "Compute final net pay.",
+      "engine": "FORMULA",
+      "ruleIds": ["RULE_NET_PAY"],
+      "execution": "SEQUENTIAL"
+    }
+  ]
+}

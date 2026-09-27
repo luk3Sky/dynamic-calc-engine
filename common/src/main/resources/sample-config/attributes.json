@@ -1,0 +1,31 @@
+{
+  "attributes": [
+    { "id": "hourlyRate", "displayName": "Hourly Rate", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 0 },
+    { "id": "standardHours", "displayName": "Standard Hours", "dataType": "NUMBER", "source": "ATTENDANCE", "defaultValue": 0 },
+    { "id": "overtimeHours", "displayName": "Overtime Hours", "dataType": "NUMBER", "source": "ATTENDANCE", "defaultValue": 0 },
+    { "id": "overtimeMultiplier", "displayName": "Overtime Multiplier", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 1.5 },
+    { "id": "employeeGrade", "displayName": "Employee Grade", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 1 },
+    { "id": "employmentType", "displayName": "Employment Type", "dataType": "STRING", "source": "EMPLOYEE_MASTER", "defaultValue": "FULL_TIME" },
+    { "id": "activityType", "displayName": "Activity Type", "dataType": "STRING", "source": "ACTIVITY", "defaultValue": null },
+    { "id": "activityUnits", "displayName": "Activity Units", "dataType": "NUMBER", "source": "ACTIVITY", "defaultValue": 0 },
+    { "id": "activityUnitRate", "displayName": "Activity Unit Rate", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 0 },
+    { "id": "transportAllowance", "displayName": "Transport Allowance", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 0 },
+    { "id": "mealAllowance", "displayName": "Meal Allowance", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 0 },
+    { "id": "providentFundRate", "displayName": "Provident Fund Rate", "dataType": "NUMBER", "source": "EMPLOYEE_MASTER", "defaultValue": 0.12 },
+    { "id": "overtimeEligible", "displayName": "Overtime Eligible", "dataType": "BOOLEAN", "source": "COMPUTED", "defaultValue": false },
+    { "id": "activityBonusEligible", "displayName": "Activity Bonus Eligible", "dataType": "BOOLEAN", "source": "COMPUTED", "defaultValue": false },
+    { "id": "taxSlab", "displayName": "Tax Slab", "dataType": "STRING", "source": "COMPUTED", "defaultValue": null },
+    { "id": "incomeTaxRate", "displayName": "Income Tax Rate", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": 0 },
+    { "id": "basePay", "displayName": "Base Pay", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "overtimePay", "displayName": "Overtime Pay", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "activityPay", "displayName": "Activity Pay", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "transportAllowanceTotal", "displayName": "Transport Allowance Total", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "mealAllowanceTotal", "displayName": "Meal Allowance Total", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "totalAllowances", "displayName": "Total Allowances", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "grossTotal", "displayName": "Gross Total", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "incomeTax", "displayName": "Income Tax", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "providentFund", "displayName": "Provident Fund", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "totalDeductions", "displayName": "Total Deductions", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null },
+    { "id": "netPay", "displayName": "Net Pay", "dataType": "NUMBER", "source": "COMPUTED", "defaultValue": null }
+  ]
+}
