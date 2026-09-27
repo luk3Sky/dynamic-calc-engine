@@ -1,0 +1,38 @@
+[versions]
+java = "21"
+spring-boot = "3.3.5"
+spring-dependency-management = "1.1.6"
+drools = "9.44.0.Final"
+jeasy = "4.1.0"
+lombok = "1.18.34"
+mapstruct = "1.6.3"
+junit = "5.11.3"
+assertj = "3.26.3"
+springdoc = "2.6.0"
+
+[libraries]
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-context = { module = "org.springframework:spring-context" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+drools-core = { module = "org.drools:drools-core", version.ref = "drools" }
+drools-mvel = { module = "org.drools:drools-mvel", version.ref = "drools" }
+drools-compiler = { module = "org.drools:drools-compiler", version.ref = "drools" }
+kie-ci = { module = "org.kie:kie-ci", version.ref = "drools" }
+jeasy-rules-core = { module = "org.jeasy:easy-rules-core", version.ref = "jeasy" }
+jeasy-rules-mvel = { module = "org.jeasy:easy-rules-mvel", version.ref = "jeasy" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstruct" }
+mapstruct-processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstruct" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+springdoc-openapi-starter-webmvc-ui = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
+
+[bundles]
+jackson = ["jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]
+drools = ["drools-core", "drools-mvel", "drools-compiler", "kie-ci"]
+jeasy = ["jeasy-rules-core", "jeasy-rules-mvel"]
+test = ["junit-jupiter", "assertj"]
