@@ -73,4 +73,12 @@ public final class AdminForms {
         }
         return node.asText();
     }
+
+    /**
+     * Null-safe dataType lookup for template rendering: returns the attribute's
+     * dataType name (or null when the attribute is unknown / not yet chosen).
+     */
+    public static String dataTypeOf(Map<String, String> dataTypesByAttribute, String attributeId) {
+        return attributeId == null ? null : dataTypesByAttribute.get(attributeId);
+    }
 }

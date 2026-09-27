@@ -71,6 +71,12 @@ public abstract class AdminSectionController {
         model.addAttribute("componentTypes", ComponentType.values());
         model.addAttribute("stageExecutions", StageExecution.values());
         model.addAttribute("writable", service.isWritable());
+        Map<String, String> dataTypesByAttribute = new java.util.LinkedHashMap<>();
+        for (com.payroll.common.config.AttributeConfig attribute : config.getAttributes()) {
+            dataTypesByAttribute.put(attribute.getId(),
+                    attribute.getDataType() == null ? null : attribute.getDataType().name());
+        }
+        model.addAttribute("dataTypesByAttribute", dataTypesByAttribute);
         @SuppressWarnings("unchecked")
         List<ConfigError> validationErrors = (List<ConfigError>) model.getAttribute("validationErrors");
         model.addAttribute("errorsByKey", validationErrors == null || validationErrors.isEmpty()

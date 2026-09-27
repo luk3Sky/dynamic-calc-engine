@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Eligibility Rules')}"></head>
+<body>
+<header th:replace="~{admin/layout :: header('eligibility')}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/layout :: errors-summary}"></div>
+
+    <h2>Eligibility Rules</h2>
+    <p class="muted">Drools-backed classification rules. Attribute and derived-fact dropdowns reflect the
+        <b>current in-memory</b> attribute list. Condition value inputs adapt to the operator
+        (single / IN / BETWEEN) and the attribute dataType.</p>
+
+    <div th:each="ruleForm, stat : ${ruleForms}">
+        <details>
+            <summary>
+                <code th:text="${ruleForm.ruleId}">RULE_ID</code>
+                <span class="muted" th:text="${ruleForm.description}">description</span>
+            </summary>
+            <div class="body">
+                <form th:action="@{/admin/eligibility-rules}" method="post">
+                    <input type="hidden" name="originalRuleId" th:value="${ruleForm.originalRuleId}"/>
+
+                    <div class="row">
+                        <label>ruleId</label>
+                        <input type="text" name="ruleId" th:value="${ruleForm.ruleId}" style="width:240px"/>
+                        <span class="field-error"
+                              th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::ruleId']}"
+                              th:text="${e.message}"></span>
+                        <label>description</label>
+                        <input type="text" name="description" th:value="${ruleForm.description}" style="flex:1"/>
+                    </div>
+
+                    <h4>Conditions <span class="muted">(all must match)</span></h4>
+                    <div class="repeatable" th:id="'conditions-' + ${stat.index}">
+                        <div class="repeatable-row condition-row" th:each="c, cstat : ${ruleForm.conditions}"
+                             data-condition-row th:attr="data-condition-index=${cstat.index}">
+                            <select name="conditions[__${cstat.index}__].attribute" class="condition-attribute"
+                                    style="width:200px">
+                                <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                                        th:selected="${c.attribute == attr.id}">attribute</option>
+                            </select>
+                            <select name="conditions[__${cstat.index}__].operator" class="condition-operator"
+                                    style="width:160px">
+                                <option th:each="op : ${operators}" th:value="${op.name()}" th:text="${op.name()}"
+                                        th:selected="${c.operator == op.name()}">EQUALS</option>
+                            </select>
+
+                            <div data-value-kind="single">
+                                <input th:if="${T(com.payroll.admin.web.AdminForms).dataTypeOf(dataTypesByAttribute, c.attribute) == 'NUMBER'}" type="number" step="any"
+                                       name="conditions[__${cstat.index}__].value" th:value="${c.value}"/>
+                                <input th:if="${T(com.payroll.admin.web.AdminForms).dataTypeOf(dataTypesByAttribute, c.attribute) == 'STRING'}" type="text"
+                                       name="conditions[__${cstat.index}__].value" th:value="${c.value}"/>
+                                <select th:if="${T(com.payroll.admin.web.AdminForms).dataTypeOf(dataTypesByAttribute, c.attribute) == 'BOOLEAN'}"
+                                        name="conditions[__${cstat.index}__].value">
+                                    <option value="">—</option>
+                                    <option value="true" th:selected="${c.value == 'true'}">true</option>
+                                    <option value="false" th:selected="${c.value == 'false'}">false</option>
+                                </select>
+                                <span class="field-error"
+                                      th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::conditions[' + cstat.index + '].value']}"
+                                      th:text="${e.message}"></span>
+                            </div>
+
+                            <div data-value-kind="in">
+                                <div class="value-inline">
+                                    <input type="text" th:each="v, vstat : ${c.inValues}"
+                                           th:name="|conditions[${cstat.index}].inValues[${vstat.index}]|"
+                                           th:value="${v}" style="width:140px"/>
+                                    <button type="button" class="small" onclick="addInValue(this)">+</button>
+                                </div>
+                                <span class="field-error"
+                                      th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::conditions[' + cstat.index + '].value']}"
+                                      th:text="${e.message}"></span>
+                            </div>
+
+                            <div data-value-kind="between">
+                                <label>min</label><input type="number" step="any"
+                                    name="conditions[__${cstat.index}__].betweenMin" th:value="${c.betweenMin}" style="width:110px"/>
+                                <label>max</label><input type="number" step="any"
+                                    name="conditions[__${cstat.index}__].betweenMax" th:value="${c.betweenMax}" style="width:110px"/>
+                                <span class="field-error"
+                                      th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::conditions[' + cstat.index + '].value']}"
+                                      th:text="${e.message}"></span>
+                            </div>
+
+                            <button type="button" class="small danger" onclick="removeRepeatable(this)">remove</button>
+                        </div>
+                    </div>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::conditions']}"
+                          th:text="${e.message}"></span>
+                    <div class="actions">
+                        <button type="button" class="small"
+                                th:onclick="|addRepeatable('conditionRowTemplate', '#conditions-${stat.index}')|">Add condition</button>
+                    </div>
+
+                    <h4>Then — set derived facts</h4>
+                    <div class="repeatable" th:id="'facts-' + ${stat.index}">
+                        <div class="repeatable-row" th:each="f, fstat : ${ruleForm.derivedFacts}" data-fact-row>
+                            <select name="derivedFacts[__${fstat.index}__].attribute" class="fact-attribute"
+                                    style="width:200px">
+                                <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                                        th:selected="${f.attribute == attr.id}"
+                                        th:attr="data-type=${dataTypesByAttribute[attr.id]}">attribute</option>
+                            </select>
+                            <div class="value-inline">
+                                <span data-fv-kind="number">
+                                    <input type="number" step="any" name="derivedFacts[__${fstat.index}__].value"
+                                           th:value="${f.value}" style="width:150px"/>
+                                </span>
+                                <span data-fv-kind="string">
+                                    <input type="text" name="derivedFacts[__${fstat.index}__].value"
+                                           th:value="${f.value}" style="width:150px"/>
+                                </span>
+                                <span data-fv-kind="boolean">
+                                    <select name="derivedFacts[__${fstat.index}__].value" style="width:90px">
+                                        <option value="">—</option>
+                                        <option value="true" th:selected="${f.value == 'true'}">true</option>
+                                        <option value="false" th:selected="${f.value == 'false'}">false</option>
+                                    </select>
+                                </span>
+                            </div>
+                            <span class="field-error"
+                                  th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::derivedFacts.' + f.attribute]}"
+                                  th:text="${e.message}"></span>
+                            <button type="button" class="small danger" onclick="removeRepeatable(this)">remove</button>
+                        </div>
+                    </div>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + ruleForm.ruleId + '::derivedFacts']}"
+                          th:text="${e.message}"></span>
+                    <div class="actions">
+                        <button type="button" class="small"
+                                th:onclick="|addRepeatable('factRowTemplate', '#facts-${stat.index}')|">Add derived fact</button>
+                    </div>
+
+                    <div th:replace="~{admin/layout :: persist-actions('/admin/eligibility-rules')}"></div>
+
+                    <label class="muted"><input type="checkbox" name="deleted" th:checked="${ruleForm.deleted}"/>
+                        delete this rule (dropped on Apply/Save)</label>
+                </form>
+            </div>
+        </details>
+    </div>
+
+    <details open>
+        <summary>Add new rule</summary>
+        <div class="body">
+            <form th:action="@{/admin/eligibility-rules}" method="post">
+                <input type="hidden" name="originalRuleId" th:value="${newRuleForm.originalRuleId}"/>
+                <div class="row">
+                    <label>ruleId</label>
+                    <input type="text" name="ruleId" th:value="${newRuleForm.ruleId}" style="width:240px"/>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + newRuleForm.ruleId + '::ruleId']}"
+                          th:text="${e.message}"></span>
+                    <label>description</label>
+                    <input type="text" name="description" th:value="${newRuleForm.description}" style="flex:1"/>
+                </div>
+
+                <h4>Conditions <span class="muted">(all must match)</span></h4>
+                <div class="repeatable" id="new-conditions">
+                    <div class="repeatable-row condition-row" th:each="c, cstat : ${newRuleForm.conditions}"
+                         data-condition-row th:attr="data-condition-index=${cstat.index}">
+                        <select name="conditions[__${cstat.index}__].attribute" class="condition-attribute" style="width:200px">
+                            <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                                    th:selected="${c.attribute == attr.id}">attribute</option>
+                        </select>
+                        <select name="conditions[__${cstat.index}__].operator" class="condition-operator" style="width:160px">
+                            <option th:each="op : ${operators}" th:value="${op.name()}" th:text="${op.name()}"
+                                    th:selected="${c.operator == op.name()}">EQUALS</option>
+                        </select>
+                        <div data-value-kind="single">
+                            <input th:if="${T(com.payroll.admin.web.AdminForms).dataTypeOf(dataTypesByAttribute, c.attribute) == 'NUMBER'}" type="number" step="any"
+                                   name="conditions[__${cstat.index}__].value" th:value="${c.value}"/>
+                            <input th:if="${T(com.payroll.admin.web.AdminForms).dataTypeOf(dataTypesByAttribute, c.attribute) == 'STRING'}" type="text"
+                                   name="conditions[__${cstat.index}__].value" th:value="${c.value}"/>
+                            <select th:if="${T(com.payroll.admin.web.AdminForms).dataTypeOf(dataTypesByAttribute, c.attribute) == 'BOOLEAN'}"
+                                    name="conditions[__${cstat.index}__].value">
+                                <option value="">—</option>
+                                <option value="true" th:selected="${c.value == 'true'}">true</option>
+                                <option value="false" th:selected="${c.value == 'false'}">false</option>
+                            </select>
+                            <span class="field-error"
+                                  th:each="e : ${errorsByKey['ELIGIBILITY_RULES::' + newRuleForm.ruleId + '::conditions[' + cstat.index + '].value']}"
+                                  th:text="${e.message}"></span>
+                        </div>
+                        <div data-value-kind="in">
+                            <div class="value-inline">
+                                <input type="text" th:each="v, vstat : ${c.inValues}"
+                                       th:name="|conditions[${cstat.index}].inValues[${vstat.index}]|"
+                                       th:value="${v}" style="width:140px"/>
+                                <button type="button" class="small" onclick="addInValue(this)">+</button>
+                            </div>
+                        </div>
+                        <div data-value-kind="between">
+                            <label>min</label><input type="number" step="any"
+                                name="conditions[__${cstat.index}__].betweenMin" th:value="${c.betweenMin}" style="width:110px"/>
+                            <label>max</label><input type="number" step="any"
+                                name="conditions[__${cstat.index}__].betweenMax" th:value="${c.betweenMax}" style="width:110px"/>
+                        </div>
+                        <button type="button" class="small danger" onclick="removeRepeatable(this)">remove</button>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="small" onclick="addRepeatable('conditionRowTemplate', '#new-conditions')">Add condition</button>
+                </div>
+
+                <h4>Then — set derived facts</h4>
+                <div class="repeatable" id="new-facts">
+                    <div class="repeatable-row" th:each="f, fstat : ${newRuleForm.derivedFacts}" data-fact-row>
+                        <select name="derivedFacts[__${fstat.index}__].attribute" class="fact-attribute" style="width:200px">
+                            <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                                    th:selected="${f.attribute == attr.id}"
+                                    th:attr="data-type=${dataTypesByAttribute[attr.id]}">attribute</option>
+                        </select>
+                        <div class="value-inline">
+                            <span data-fv-kind="number"><input type="number" step="any" name="derivedFacts[__${fstat.index}__].value" th:value="${f.value}" style="width:150px"/></span>
+                            <span data-fv-kind="string"><input type="text" name="derivedFacts[__${fstat.index}__].value" th:value="${f.value}" style="width:150px"/></span>
+                            <span data-fv-kind="boolean">
+                                <select name="derivedFacts[__${fstat.index}__].value" style="width:90px">
+                                    <option value="">—</option><option value="true" th:selected="${f.value == 'true'}">true</option><option value="false" th:selected="${f.value == 'false'}">false</option>
+                                </select>
+                            </span>
+                        </div>
+                        <button type="button" class="small danger" onclick="removeRepeatable(this)">remove</button>
+                    </div>
+                </div>
+                <div class="actions">
+                    <button type="button" class="small" onclick="addRepeatable('factRowTemplate', '#new-facts')">Add derived fact</button>
+                </div>
+
+                <div th:replace="~{admin/layout :: persist-actions('/admin/eligibility-rules')}"></div>
+            </form>
+        </div>
+    </details>
+
+    <template id="conditionRowTemplate">
+        <div class="repeatable-row condition-row" data-condition-row data-condition-index="__IDX__">
+            <select name="conditions[__IDX__].attribute" class="condition-attribute" style="width:200px">
+                <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}">attribute</option>
+            </select>
+            <select name="conditions[__IDX__].operator" class="condition-operator" style="width:160px">
+                <option th:each="op : ${operators}" th:value="${op.name()}" th:text="${op.name()}">EQUALS</option>
+            </select>
+            <div data-value-kind="single">
+                <input type="text" name="conditions[__IDX__].value"/>
+            </div>
+            <div data-value-kind="in">
+                <div class="value-inline">
+                    <input type="text" name="conditions[__IDX__].inValues[0]" style="width:140px"/>
+                    <button type="button" class="small" onclick="addInValue(this)">+</button>
+                </div>
+            </div>
+            <div data-value-kind="between">
+                <label>min</label><input type="number" step="any" name="conditions[__IDX__].betweenMin" style="width:110px"/>
+                <label>max</label><input type="number" step="any" name="conditions[__IDX__].betweenMax" style="width:110px"/>
+            </div>
+            <button type="button" class="small danger" onclick="removeRepeatable(this)">remove</button>
+        </div>
+    </template>
+
+    <template id="factRowTemplate">
+        <div class="repeatable-row" data-fact-row>
+            <select name="derivedFacts[__IDX__].attribute" class="fact-attribute" style="width:200px">
+                <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                        th:attr="data-type=${dataTypesByAttribute[attr.id]}">attribute</option>
+            </select>
+            <div class="value-inline">
+                <span data-fv-kind="number"><input type="number" step="any" name="derivedFacts[__IDX__].value" style="width:150px"/></span>
+                <span data-fv-kind="string"><input type="text" name="derivedFacts[__IDX__].value" style="width:150px"/></span>
+                <span data-fv-kind="boolean">
+                    <select name="derivedFacts[__IDX__].value" style="width:90px">
+                        <option value="">—</option><option value="true">true</option><option value="false">false</option>
+                    </select>
+                </span>
+            </div>
+            <button type="button" class="small danger" onclick="removeRepeatable(this)">remove</button>
+        </div>
+    </template>
+</main>
+
+<script th:replace="~{admin/layout :: scripts}"></script>
+<footer th:replace="~{admin/layout :: footer}"></footer>
+</body>
+</html>

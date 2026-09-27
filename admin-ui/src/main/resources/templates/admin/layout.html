@@ -129,16 +129,54 @@
                 row.parentElement.removeChild(row);
             }
         }
+        function addInValue(button) {
+            var row = button.closest('[data-condition-row]');
+            var container = row.querySelector('.in-values');
+            var idx = row.getAttribute('data-condition-index');
+            var maxValIdx = -1;
+            container.querySelectorAll('[name]').forEach(function (el) {
+                var m = /inValues\[(\d+)\]/.exec(el.name);
+                if (m) { var v = parseInt(m[1], 10); if (v > maxValIdx) maxValIdx = v; }
+            });
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.name = 'conditions[' + idx + '].inValues[' + (maxValIdx + 1) + ']';
+            container.appendChild(input);
+        }
         function initValueInputs() {
             document.querySelectorAll('[data-condition-row]').forEach(function (row) {
                 var op = row.querySelector('select.condition-operator');
                 if (op) { op.addEventListener('change', function () { updateValueContainer(row, op.value); }); updateValueContainer(row, op.value); }
             });
+            document.querySelectorAll('[data-fact-row]').forEach(function (row) {
+                var attr = row.querySelector('select.fact-attribute');
+                if (attr) { attr.addEventListener('change', function () { updateFactValue(row, attr.value); }); updateFactValue(row, attr.value); }
+            });
+            document.querySelectorAll('[data-dv-row]').forEach(function (row) {
+                var sel = row.querySelector('select[data-dv-select]');
+                if (sel) { sel.addEventListener('change', function () { updateDefaultValue(row, sel.value); }); updateDefaultValue(row, sel.value); }
+            });
         }
         function updateValueContainer(row, operator) {
             var kind = (operator === 'IN') ? 'in' : (operator === 'BETWEEN' ? 'between' : 'single');
             row.querySelectorAll('[data-value-kind]').forEach(function (c) {
-                c.style.display = (c.getAttribute('data-value-kind') === kind) ? '' : 'none';
+                c.classList.toggle('hidden', c.getAttribute('data-value-kind') !== kind);
+            });
+        }
+        function updateFactValue(row, attributeId) {
+            var select = row.querySelector('select.fact-attribute');
+            var dt = 'string';
+            if (select) {
+                var opt = select.querySelector('option[value="' + attributeId + '"]');
+                if (opt) dt = (opt.getAttribute('data-type') || 'STRING').toLowerCase();
+            }
+            row.querySelectorAll('[data-fv-kind]').forEach(function (c) {
+                c.classList.toggle('hidden', c.getAttribute('data-fv-kind') !== dt);
+            });
+        }
+        function updateDefaultValue(row, dataType) {
+            row.querySelectorAll('[data-dv-kind]').forEach(function (c) {
+                c.classList.toggle('hidden', c.getAttribute('data-dv-kind') !== dataType.toLowerCase());
             });
         }
         document.addEventListener('DOMContentLoaded', initValueInputs);

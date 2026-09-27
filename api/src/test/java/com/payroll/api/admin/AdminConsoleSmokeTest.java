@@ -52,6 +52,32 @@ class AdminConsoleSmokeTest {
                 .andExpect(redirectedUrl("/admin/attributes"));
     }
 
+    @Test
+    void eligibilityEditorRenders() throws Exception {
+        mockMvc.perform(get("/admin/eligibility-rules"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/eligibility-rules"));
+    }
+
+    @Test
+    void eligibilityRuleFormPostsAndApplies() throws Exception {
+        mockMvc.perform(post("/admin/eligibility-rules")
+                        .param("action", "apply")
+                        .param("originalRuleId", "RULE_OVERTIME_ELIGIBLE")
+                        .param("ruleId", "RULE_OVERTIME_ELIGIBLE")
+                        .param("description", "Full-time employees at grade 4 or above qualify for overtime premium pay.")
+                        .param("conditions[0].attribute", "employmentType")
+                        .param("conditions[0].operator", "EQUALS")
+                        .param("conditions[0].value", "FULL_TIME")
+                        .param("conditions[1].attribute", "employeeGrade")
+                        .param("conditions[1].operator", "GREATER_THAN")
+                        .param("conditions[1].value", "3")
+                        .param("derivedFacts[0].attribute", "overtimeEligible")
+                        .param("derivedFacts[0].value", "true"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/eligibility-rules"));
+    }
+
     private MockHttpServletRequestBuilder attributesForm(String action) {
         PayrollConfig config = new JacksonConfigLoaderService().loadConfig();
         MockHttpServletRequestBuilder request = post("/admin/attributes").param("action", action);
