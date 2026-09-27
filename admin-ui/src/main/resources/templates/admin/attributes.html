@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Attributes')}"></head>
+<body>
+<header th:replace="~{admin/layout :: header('attributes')}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/layout :: errors-summary}"></div>
+
+    <h2>Attributes</h2>
+    <p class="muted">The attribute dictionary. Dropping an attribute that a rule or workflow references
+        is blocked by validation until those references are removed too.</p>
+
+    <form th:object="${form}" th:action="@{/admin/attributes}" method="post">
+        <table>
+            <thead>
+            <tr>
+                <th style="width:130px">id</th>
+                <th>displayName</th>
+                <th style="width:120px">dataType</th>
+                <th style="width:150px">source</th>
+                <th style="width:170px">defaultValue</th>
+                <th style="width:60px">delete</th>
+            </tr>
+            </thead>
+            <tbody id="attributeRows">
+            <tr th:each="attr, stat : ${form.attributes}">
+                <td>
+                    <input type="text" th:field="*{attributes[__${stat.index}__].id}"
+                           th:classappend="${errorsByKey['ATTRIBUTES::' + attr.id + '::id']} ? 'invalid'"/>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['ATTRIBUTES::' + attr.id + '::id']}"
+                          th:text="${e.message}"></span>
+                </td>
+                <td><input type="text" th:field="*{attributes[__${stat.index}__].displayName}"/></td>
+                <td>
+                    <select th:field="*{attributes[__${stat.index}__].dataType}"
+                            onchange="updateDefaultValue(this.closest('tr'), this.value)">
+                        <option th:each="dt : ${dataTypes}" th:value="${dt.name()}" th:text="${dt.name()}">NUMBER</option>
+                    </select>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['ATTRIBUTES::' + attr.id + '::dataType']}"
+                          th:text="${e.message}"></span>
+                </td>
+                <td>
+                    <select th:field="*{attributes[__${stat.index}__].source}">
+                        <option th:each="s : ${sources}" th:value="${s.name()}" th:text="${s.name()}">COMPUTED</option>
+                    </select>
+                </td>
+                <td>
+                    <div th:with="dt=${attr.dataType}">
+                        <span data-dv-kind="number" th:classappend="${dt == 'NUMBER'} ? '' : 'hidden'">
+                            <input type="number" step="any" th:field="*{attributes[__${stat.index}__].defaultValue}"/>
+                        </span>
+                        <span data-dv-kind="text" th:classappend="${dt == 'STRING'} ? '' : 'hidden'">
+                            <input type="text" th:field="*{attributes[__${stat.index}__].defaultValue}"/>
+                        </span>
+                        <span data-dv-kind="boolean" th:classappend="${dt == 'BOOLEAN'} ? '' : 'hidden'">
+                            <select th:field="*{attributes[__${stat.index}__].defaultValue}">
+                                <option value="">—</option>
+                                <option value="true">true</option>
+                                <option value="false">false</option>
+                            </select>
+                        </span>
+                    </div>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['ATTRIBUTES::' + attr.id + '::defaultValue']}"
+                          th:text="${e.message}"></span>
+                </td>
+                <td style="text-align:center"><input type="checkbox" th:field="*{attributes[__${stat.index}__].deleted}"/></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="actions">
+            <button type="button" onclick="addRepeatable('attributeRowTemplate', '#attributeRows')">Add Attribute</button>
+        </div>
+
+        <div th:replace="~{admin/layout :: persist-actions('/admin/attributes')}"></div>
+    </form>
+
+    <template id="attributeRowTemplate">
+        <tr>
+            <td>
+                <input type="text" name="attributes[__IDX__].id" placeholder="attributeId"/>
+            </td>
+            <td><input type="text" name="attributes[__IDX__].displayName"/></td>
+            <td>
+                <select name="attributes[__IDX__].dataType" onchange="updateDefaultValue(this.closest('tr'), this.value)">
+                    <option th:each="dt : ${dataTypes}" th:value="${dt.name()}" th:text="${dt.name()}">NUMBER</option>
+                </select>
+            </td>
+            <td>
+                <select name="attributes[__IDX__].source">
+                    <option th:each="s : ${sources}" th:value="${s.name()}" th:text="${s.name()}">COMPUTED</option>
+                </select>
+            </td>
+            <td>
+                <span data-dv-kind="number"><input type="number" step="any" name="attributes[__IDX__].defaultValue"/></span>
+                <span data-dv-kind="text" class="hidden"><input type="text" name="attributes[__IDX__].defaultValue"/></span>
+                <span data-dv-kind="boolean" class="hidden">
+                    <select name="attributes[__IDX__].defaultValue">
+                        <option value="">—</option>
+                        <option value="true">true</option>
+                        <option value="false">false</option>
+                    </select>
+                </span>
+            </td>
+            <td style="text-align:center"><input type="checkbox" name="attributes[__IDX__].deleted"/></td>
+        </tr>
+    </template>
+</main>
+
+<script th:replace="~{admin/layout :: scripts}"></script>
+<script>
+    function updateDefaultValue(row, dataType) {
+        row.querySelectorAll('[data-dv-kind]').forEach(function (c) {
+            c.classList.toggle('hidden', c.getAttribute('data-dv-kind') !== dataType.toLowerCase());
+        });
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('#attributeRows tr').forEach(function (row) {
+            var sel = row.querySelector('select[name*=".dataType"], [id$=".dataType"]');
+            var dt = row.querySelector('[data-dv-kind]:not(.hidden)');
+            if (sel) updateDefaultValue(row, sel.value);
+        });
+    });
+</script>
+<footer th:replace="~{admin/layout :: footer}"></footer>
+</body>
+</html>

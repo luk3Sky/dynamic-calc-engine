@@ -71,6 +71,11 @@ public abstract class AdminSectionController {
         model.addAttribute("componentTypes", ComponentType.values());
         model.addAttribute("stageExecutions", StageExecution.values());
         model.addAttribute("writable", service.isWritable());
+        @SuppressWarnings("unchecked")
+        List<ConfigError> validationErrors = (List<ConfigError>) model.getAttribute("validationErrors");
+        model.addAttribute("errorsByKey", validationErrors == null || validationErrors.isEmpty()
+                ? Map.of()
+                : AdminForms.groupErrorsByKey(validationErrors));
     }
 
     /** Human-friendly string of the current config location for page footers. */

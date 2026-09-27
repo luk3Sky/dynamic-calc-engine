@@ -1,10 +1,14 @@
 package com.payroll.admin.web;
 
 import com.payroll.admin.persistence.ConfigFileStore;
+import com.payroll.common.config.AttributeConfig;
 import com.payroll.common.config.ConfigLoaderService;
 import com.payroll.common.config.ConfigValidator;
+import com.payroll.common.config.EligibilityRuleConfig;
+import com.payroll.common.config.FormulaRuleConfig;
 import com.payroll.common.config.PayrollConfig;
 import com.payroll.common.config.ValidationResult;
+import com.payroll.common.config.WorkflowStage;
 import com.payroll.rulesengine.config.ConfigRuntime;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +56,50 @@ public class AdminConfigService {
     /** Current in-memory (live) config that the calculation engine reads from. */
     public PayrollConfig currentConfig() {
         return runtime.getConfig();
+    }
+
+    /** Candidate config with only the attributes replaced by the pending edit. */
+    public PayrollConfig withAttributes(java.util.List<AttributeConfig> attributes) {
+        PayrollConfig current = currentConfig();
+        return PayrollConfig.builder()
+                .attributes(attributes)
+                .eligibilityRules(current.getEligibilityRules())
+                .formulaRules(current.getFormulaRules())
+                .stages(current.getStages())
+                .build();
+    }
+
+    /** Candidate config with only the eligibility rules replaced. */
+    public PayrollConfig withEligibilityRules(java.util.List<EligibilityRuleConfig> eligibilityRules) {
+        PayrollConfig current = currentConfig();
+        return PayrollConfig.builder()
+                .attributes(current.getAttributes())
+                .eligibilityRules(eligibilityRules)
+                .formulaRules(current.getFormulaRules())
+                .stages(current.getStages())
+                .build();
+    }
+
+    /** Candidate config with only the formula rules replaced. */
+    public PayrollConfig withFormulaRules(java.util.List<FormulaRuleConfig> formulaRules) {
+        PayrollConfig current = currentConfig();
+        return PayrollConfig.builder()
+                .attributes(current.getAttributes())
+                .eligibilityRules(current.getEligibilityRules())
+                .formulaRules(formulaRules)
+                .stages(current.getStages())
+                .build();
+    }
+
+    /** Candidate config with only the workflow stages replaced. */
+    public PayrollConfig withStages(java.util.List<WorkflowStage> stages) {
+        PayrollConfig current = currentConfig();
+        return PayrollConfig.builder()
+                .attributes(current.getAttributes())
+                .eligibilityRules(current.getEligibilityRules())
+                .formulaRules(current.getFormulaRules())
+                .stages(stages)
+                .build();
     }
 
     public void applyToRuntime(PayrollConfig candidate) {
