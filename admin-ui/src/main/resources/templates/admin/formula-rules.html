@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Formula Rules')}"></head>
+<body>
+<header th:replace="~{admin/layout :: header('formula')}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+    <div th:replace="~{admin/layout :: errors-summary}"></div>
+
+    <h2>Formula Rules</h2>
+    <p class="muted">jEasy-backed MVEL formulas. <b>Test Expression</b> evaluates the condition and formula against a
+        sample context built from current attribute defaults — it changes nothing. The output-attribute dropdown can
+        declare a brand-new COMPUTED attribute in the same edit.</p>
+
+    <div th:if="${testError}" class="flash error">
+        <strong>Test failed:</strong> <span th:text="${testError}">error</span>
+    </div>
+    <div th:if="${testResult}" class="flash">
+        <strong>Test result:</strong>
+        <pre style="margin:0.4rem 0 0" th:text="${testResult}">result</pre>
+    </div>
+
+    <div th:each="ruleForm, stat : ${ruleForms}">
+        <details>
+            <summary>
+                <code th:text="${ruleForm.ruleId}">RULE_ID</code>
+                <span class="muted" th:text="${ruleForm.name}">name</span>
+                <span class="muted" th:text="'priority ' + ${ruleForm.priority}">priority 1</span>
+            </summary>
+            <div class="body">
+                <form th:action="@{/admin/formula-rules}" method="post">
+                    <input type="hidden" name="originalRuleId" th:value="${ruleForm.originalRuleId}"/>
+
+                    <div class="row">
+                        <label>ruleId</label>
+                        <input type="text" name="ruleId" th:value="${ruleForm.ruleId}" style="width:200px"/>
+                        <label>name</label>
+                        <input type="text" name="name" th:value="${ruleForm.name}" style="width:180px"/>
+                        <label>priority</label>
+                        <input type="number" name="priority" th:value="${ruleForm.priority}" style="width:80px"/>
+                    </div>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['FORMULA_RULES::' + ruleForm.ruleId + '::ruleId']}"
+                          th:text="${e.message}"></span>
+                    <div class="row" style="margin-top:0.5rem">
+                        <label>description</label>
+                        <input type="text" name="description" th:value="${ruleForm.description}" style="flex:1"/>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.7rem">
+                        <div>
+                            <label>condition (MVEL)</label>
+                            <textarea name="condition" rows="3" th:text="${ruleForm.condition}"></textarea>
+                            <span class="field-error"
+                                  th:each="e : ${errorsByKey['FORMULA_RULES::' + ruleForm.ruleId + '::condition']}"
+                                  th:text="${e.message}"></span>
+                        </div>
+                        <div>
+                            <label>formula (MVEL)</label>
+                            <textarea name="formula" rows="3" th:text="${ruleForm.formula}"></textarea>
+                            <span class="field-error"
+                                  th:each="e : ${errorsByKey['FORMULA_RULES::' + ruleForm.ruleId + '::formula']}"
+                                  th:text="${e.message}"></span>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top:0.7rem">
+                        <label>outputAttribute</label>
+                        <select name="outputAttribute" style="width:220px">
+                            <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                                    th:selected="${ruleForm.outputAttribute == attr.id}">attribute</option>
+                            <option th:if="${ruleForm.addNewAttribute and !#strings.isEmpty(ruleForm.newOutputAttribute)}"
+                                    th:value="${ruleForm.newOutputAttribute}"
+                                    th:text="${ruleForm.newOutputAttribute} + ' (new computed)'"
+                                    th:selected="${ruleForm.outputAttribute == ruleForm.newOutputAttribute}">new</option>
+                        </select>
+                        <span class="field-error"
+                              th:each="e : ${errorsByKey['FORMULA_RULES::' + ruleForm.ruleId + '::outputAttribute']}"
+                              th:text="${e.message}"></span>
+                        <label>componentType</label>
+                        <select name="componentType" style="width:130px">
+                            <option value="">—</option>
+                            <option th:each="ct : ${componentTypes}" th:value="${ct.name()}" th:text="${ct.name()}"
+                                    th:selected="${ruleForm.componentType == ct.name()}">EARNING</option>
+                        </select>
+                    </div>
+                    <label class="muted" style="margin-top:0.6rem; display:inline-flex; gap:0.4rem; align-items:center">
+                        <input type="checkbox" name="addNewAttribute" th:checked="${ruleForm.addNewAttribute}"/>
+                        declare a new computed NUMBER attribute
+                        <input type="text" name="newOutputAttribute" th:value="${ruleForm.newOutputAttribute}"
+                               placeholder="newAttributeId" style="width:180px"/>
+                    </label>
+
+                    <div class="actions">
+                        <button type="submit" formaction="/admin/formula-rules/test">Test Expression</button>
+                    </div>
+
+                    <div th:replace="~{admin/layout :: persist-actions('/admin/formula-rules')}"></div>
+
+                    <label class="muted"><input type="checkbox" name="deleted" th:checked="${ruleForm.deleted}"/>
+                        delete this rule (dropped on Apply/Save)</label>
+                </form>
+            </div>
+        </details>
+    </div>
+
+    <details open>
+        <summary>Add new rule</summary>
+        <div class="body">
+            <form th:action="@{/admin/formula-rules}" method="post">
+                <input type="hidden" name="originalRuleId" th:value="${newRuleForm.originalRuleId}"/>
+                <div class="row">
+                    <label>ruleId</label>
+                    <input type="text" name="ruleId" th:value="${newRuleForm.ruleId}" style="width:200px"/>
+                    <label>name</label>
+                    <input type="text" name="name" th:value="${newRuleForm.name}" style="width:180px"/>
+                    <label>priority</label>
+                    <input type="number" name="priority" th:value="${newRuleForm.priority}" style="width:80px"/>
+                </div>
+                <span class="field-error"
+                      th:each="e : ${errorsByKey['FORMULA_RULES::' + newRuleForm.ruleId + '::ruleId']}"
+                      th:text="${e.message}"></span>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.7rem">
+                    <div>
+                        <label>condition (MVEL)</label>
+                        <textarea name="condition" rows="3" th:text="${newRuleForm.condition}"></textarea>
+                        <span class="field-error"
+                              th:each="e : ${errorsByKey['FORMULA_RULES::' + newRuleForm.ruleId + '::condition']}"
+                              th:text="${e.message}"></span>
+                    </div>
+                    <div>
+                        <label>formula (MVEL)</label>
+                        <textarea name="formula" rows="3" th:text="${newRuleForm.formula}"></textarea>
+                        <span class="field-error"
+                              th:each="e : ${errorsByKey['FORMULA_RULES::' + newRuleForm.ruleId + '::formula']}"
+                              th:text="${e.message}"></span>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:0.7rem">
+                    <label>outputAttribute</label>
+                    <select name="outputAttribute" style="width:220px">
+                        <option th:each="attr : ${attributes}" th:value="${attr.id}" th:text="${attr.id}"
+                                th:selected="${newRuleForm.outputAttribute == attr.id}">attribute</option>
+                        <option th:if="${newRuleForm.addNewAttribute and !#strings.isEmpty(newRuleForm.newOutputAttribute)}"
+                                th:value="${newRuleForm.newOutputAttribute}"
+                                th:text="${newRuleForm.newOutputAttribute} + ' (new computed)'"
+                                th:selected="${newRuleForm.outputAttribute == newRuleForm.newOutputAttribute}">new</option>
+                    </select>
+                    <span class="field-error"
+                          th:each="e : ${errorsByKey['FORMULA_RULES::' + newRuleForm.ruleId + '::outputAttribute']}"
+                          th:text="${e.message}"></span>
+                    <label>componentType</label>
+                    <select name="componentType" style="width:130px">
+                        <option value="">—</option>
+                        <option th:each="ct : ${componentTypes}" th:value="${ct.name()}" th:text="${ct.name()}"
+                                th:selected="${newRuleForm.componentType == ct.name()}">EARNING</option>
+                    </select>
+                </div>
+                <label class="muted" style="margin-top:0.6rem; display:inline-flex; gap:0.4rem; align-items:center">
+                    <input type="checkbox" name="addNewAttribute" th:checked="${newRuleForm.addNewAttribute}"/>
+                    declare a new computed NUMBER attribute
+                    <input type="text" name="newOutputAttribute" th:value="${newRuleForm.newOutputAttribute}"
+                           placeholder="newAttributeId" style="width:180px"/>
+                </label>
+                <div class="actions">
+                    <button type="submit" formaction="/admin/formula-rules/test">Test Expression</button>
+                </div>
+                <div th:replace="~{admin/layout :: persist-actions('/admin/formula-rules')}"></div>
+            </form>
+        </div>
+    </details>
+</main>
+
+<script th:replace="~{admin/layout :: scripts}"></script>
+<footer th:replace="~{admin/layout :: footer}"></footer>
+</body>
+</html>

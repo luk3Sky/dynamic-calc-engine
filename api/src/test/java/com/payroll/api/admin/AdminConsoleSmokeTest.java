@@ -78,6 +78,40 @@ class AdminConsoleSmokeTest {
                 .andExpect(redirectedUrl("/admin/eligibility-rules"));
     }
 
+    @Test
+    void formulaRulesEditorRenders() throws Exception {
+        mockMvc.perform(get("/admin/formula-rules"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/formula-rules"));
+    }
+
+    @Test
+    void formulaRuleTestExpressionEvaluates() throws Exception {
+        mockMvc.perform(post("/admin/formula-rules/test")
+                        .param("ruleId", "RULE_BASE_PAY")
+                        .param("condition", "standardHours > 0")
+                        .param("formula", "hourlyRate * standardHours"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/formula-rules"));
+    }
+
+    @Test
+    void formulaRuleFormPostsAndApplies() throws Exception {
+        mockMvc.perform(post("/admin/formula-rules")
+                        .param("action", "apply")
+                        .param("originalRuleId", "RULE_BASE_PAY")
+                        .param("ruleId", "RULE_BASE_PAY")
+                        .param("name", "Base Pay")
+                        .param("description", "Regular pay for standard hours worked.")
+                        .param("priority", "1")
+                        .param("condition", "standardHours > 0")
+                        .param("formula", "hourlyRate * standardHours")
+                        .param("outputAttribute", "basePay")
+                        .param("componentType", "EARNING"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/formula-rules"));
+    }
+
     private MockHttpServletRequestBuilder attributesForm(String action) {
         PayrollConfig config = new JacksonConfigLoaderService().loadConfig();
         MockHttpServletRequestBuilder request = post("/admin/attributes").param("action", action);

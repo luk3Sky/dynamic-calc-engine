@@ -7,6 +7,7 @@ dependencies {
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.validation)
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation(libs.jeasy.rules.mvel)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
