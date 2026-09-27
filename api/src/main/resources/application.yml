@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: payroll-calc-engine
+  profiles:
+    active: dev
+  jackson:
+    default-property-inclusion: non_null
+
+server:
+  port: 8080
+
+payroll:
+  config:
+    # classpath:path or filesystem path to the four payroll JSON config files
+    location: classpath:sample-config/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+logging:
+  level:
+    com.payroll: INFO

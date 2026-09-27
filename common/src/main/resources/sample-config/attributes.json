@@ -60,7 +60,7 @@
       "id": "activityUnitRate",
       "displayName": "Activity Unit Rate",
       "dataType": "NUMBER",
-      "source": "EMPLOYEE_MASTER",
+      "source": "ACTIVITY",
       "defaultValue": 0
     },
     {

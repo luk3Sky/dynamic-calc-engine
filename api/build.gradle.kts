@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"))
+
     implementation(project(":rules-engine"))
     implementation(project(":common"))
 
@@ -11,10 +13,10 @@ dependencies {
     implementation(libs.springdoc.openapi.starter.webmvc.ui)
 
     implementation(libs.mapstruct)
+    annotationProcessor(libs.lombok)
     annotationProcessor(libs.mapstruct.processor)
 
     compileOnly(libs.lombok)
-    annotationProcessor(libs.lombok)
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.assertj)
