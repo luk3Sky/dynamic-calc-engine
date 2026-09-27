@@ -1,0 +1,75 @@
+### Full-time employee with overtime — expect gross 1375.00, net 1117.50
+POST http://localhost:8080/api/v1/payroll/calculate
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-1001",
+  "period": { "startDate": "2026-09-01", "endDate": "2026-09-30" },
+  "employee": {
+    "grade": 4,
+    "employmentType": "FULL_TIME",
+    "hourlyRate": 25.00,
+    "providentFundRate": 0.12,
+    "transportAllowance": 150.00,
+    "mealAllowance": 75.00,
+    "overtimeMultiplier": 1.5
+  },
+  "attendance": { "standardHours": 40, "overtimeHours": 4 },
+  "activities": [ { "activityType": "DELIVERY", "units": 0, "unitRate": 0 } ]
+}
+
+### Part-time employee, no overtime — expect gross 400.00, net 400.00
+POST http://localhost:8080/api/v1/payroll/calculate
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-2002",
+  "period": { "startDate": "2026-09-01", "endDate": "2026-09-30" },
+  "employee": {
+    "grade": 2,
+    "employmentType": "PART_TIME",
+    "hourlyRate": 20.00,
+    "providentFundRate": 0.12,
+    "transportAllowance": 0,
+    "mealAllowance": 0,
+    "overtimeMultiplier": 1.5
+  },
+  "attendance": { "standardHours": 20, "overtimeHours": 0 },
+  "activities": [ { "activityType": "SALES_UNIT", "units": 0, "unitRate": 0 } ]
+}
+
+### Activity-based contractor — expect gross 1250.00, net 1125.00
+POST http://localhost:8080/api/v1/payroll/calculate
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-3003",
+  "period": { "startDate": "2026-09-01", "endDate": "2026-09-30" },
+  "employee": {
+    "grade": 1,
+    "employmentType": "CONTRACT",
+    "hourlyRate": 0,
+    "providentFundRate": 0,
+    "transportAllowance": 0,
+    "mealAllowance": 0,
+    "overtimeMultiplier": 1.5
+  },
+  "attendance": { "standardHours": 0, "overtimeHours": 0 },
+  "activities": [ { "activityType": "PIECEWORK", "units": 500, "unitRate": 2.50 } ]
+}
+
+### Read-only config introspection (for the future low-code UI)
+GET http://localhost:8080/api/v1/payroll/config/attributes
+
+### Loaded eligibility + formula rules
+GET http://localhost:8080/api/v1/payroll/config/rules
+
+### Incomplete payload — expect 400
+POST http://localhost:8080/api/v1/payroll/calculate
+Content-Type: application/json
+
+{
+  "employeeId": "EMP-1001",
+  "period": { "startDate": "2026-09-01", "endDate": "2026-09-30" },
+  "attendance": { "standardHours": 40, "overtimeHours": 0 }
+}

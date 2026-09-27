@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * Maps exceptions to structured {@link ApiError} responses. Stack traces are
@@ -44,6 +45,12 @@ public class ApiExceptionHandler {
     public ApiError handleRuleEvaluation(RuntimeException ex) {
         log.warn("Rule evaluation failed: {}", ex.getMessage());
         return ApiError.of(422, "Rule Evaluation Failed", ex.getMessage());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleNotFound(NoResourceFoundException ex) {
+        return ApiError.of(404, "Not Found", "No handler found for " + ex.getResourcePath());
     }
 
     @ExceptionHandler(Exception.class)
