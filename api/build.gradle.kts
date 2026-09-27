@@ -6,6 +6,7 @@ dependencies {
     implementation(platform("org.springframework.boot:spring-boot-dependencies:${libs.versions.spring.boot.get()}"))
 
     implementation(project(":rules-engine"))
+    implementation(project(":admin-ui"))
     implementation(project(":common"))
 
     implementation(libs.spring.boot.starter.web)

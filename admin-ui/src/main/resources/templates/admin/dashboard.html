@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{admin/layout :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{admin/layout :: header('dashboard')}"></header>
+<main>
+    <div th:replace="~{admin/layout :: flash}"></div>
+
+    <h2>Dashboard</h2>
+    <p class="muted">The four JSON config files live in the shared in-memory
+        <code>ConfigRuntime</code> that the calculation engine reads from. Edit a section below,
+        then <b>Apply to Runtime</b> (memory only) or <b>Save to File</b> (memory + disk, with a
+        <code>.bak</code> backup).</p>
+
+    <div class="grid2">
+        <div class="stat"><div class="num" th:text="${attributeCount}">27</div><div class="label">Attributes</div></div>
+        <div class="stat"><div class="num" th:text="${eligibilityRuleCount}">5</div><div class="label">Eligibility Rules</div></div>
+        <div class="stat"><div class="num" th:text="${formulaRuleCount}">11</div><div class="label">Formula Rules</div></div>
+        <div class="stat"><div class="num" th:text="${stageCount}">9</div><div class="label">Workflow Stages</div></div>
+    </div>
+
+    <div class="card" style="margin-top:1rem">
+        <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap">
+            <strong>In-memory vs disk:</strong>
+            <span class="badge" th:classappend="${dirty} ? 'warn' : 'ok'"
+                  th:text="${dirty} ? 'DIRTY — unsaved in-memory changes' : 'In sync with disk'"></span>
+        </div>
+        <p class="muted" style="margin-bottom:0">
+            Config location: <code th:text="${configLocation}">classpath:sample-config/</code> ·
+            Disk persistence: <span th:text="${writable} ? 'enabled' : 'unavailable (classpath location)'">enabled</span>
+        </p>
+    </div>
+
+    <h3>Last saved to file</h3>
+    <table>
+        <thead>
+        <tr><th>Config file</th><th>Last saved</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="section : ${T(com.payroll.common.config.ConfigSection).values()}">
+            <td><code th:text="${section.fileName}">attributes.json</code></td>
+            <td th:text="${lastSaved[section.name()]}">—</td>
+        </tr>
+        </tbody>
+    </table>
+</main>
+<footer th:replace="~{admin/layout :: footer}"></footer>
+</body>
+</html>

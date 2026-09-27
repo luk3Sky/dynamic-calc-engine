@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${title} + ' · Payroll Config Console'">Payroll Config Console</title>
+    <style>
+        :root { --border: #d0d7de; --muted: #57606a; --accent: #0969da; --bg: #f6f8fa; --ok: #1a7f37; --err: #cf222e; }
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; color: #1f2328; background: #fff; }
+        header.top { background: #24292f; color: #fff; padding: 0.6rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+        header.top h1 { font-size: 1.05rem; margin: 0; }
+        header.top nav { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+        header.top nav a { color: #c9d1d9; text-decoration: none; padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.9rem; }
+        header.top nav a:hover { background: #363c43; color: #fff; }
+        header.top nav a.active { background: var(--accent); color: #fff; }
+        main { max-width: 1100px; margin: 0 auto; padding: 1.5rem; }
+        h2 { margin-top: 0; }
+        .flash { background: #dafbe1; border: 1px solid #aceebb; color: #1a7f37; padding: 0.6rem 0.9rem; border-radius: 6px; margin-bottom: 1rem; }
+        .flash.error { background: #ffebe9; border-color: #ff818266; color: var(--err); }
+        .errors-summary { background: #ffebe9; border: 1px solid #ff818266; color: var(--err); padding: 0.6rem 0.9rem; border-radius: 6px; margin-bottom: 1rem; }
+        .field-error { color: var(--err); font-size: 0.82rem; display: block; margin-top: 0.15rem; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 1rem; background: #fff; }
+        th, td { border: 1px solid var(--border); padding: 0.45rem 0.6rem; text-align: left; vertical-align: top; font-size: 0.9rem; }
+        th { background: var(--bg); font-weight: 600; }
+        input[type=text], input[type=number], select, textarea { padding: 0.35rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem; width: 100%; }
+        textarea { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+        button, .btn { background: #f6f8fa; border: 1px solid var(--border); color: #24292f; border-radius: 6px; padding: 0.4rem 0.85rem; cursor: pointer; font-size: 0.9rem; }
+        button:hover { background: #eaeef2; }
+        button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+        button.primary:hover { background: #0860ca; }
+        button.danger { color: var(--err); border-color: #ff818266; }
+        button.small, .btn.small { padding: 0.2rem 0.5rem; font-size: 0.8rem; }
+        .actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+        details { border: 1px solid var(--border); border-radius: 6px; margin-bottom: 0.6rem; background: #fff; }
+        details > summary { padding: 0.6rem 0.9rem; cursor: pointer; font-weight: 600; }
+        details[open] > summary { border-bottom: 1px solid var(--border); background: var(--bg); }
+        details .body { padding: 0.9rem; }
+        .rule-badge { display: inline-block; background: #ddf4ff; color: #0550ae; border-radius: 999px; padding: 0.1rem 0.55rem; font-size: 0.78rem; margin: 0.1rem; }
+        .muted { color: var(--muted); font-size: 0.85rem; }
+        .repeatable { display: flex; flex-direction: column; gap: 0.4rem; }
+        .row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        .card { border: 1px solid var(--border); border-radius: 6px; padding: 1rem; margin-bottom: 1rem; }
+        .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+        .stat { border: 1px solid var(--border); border-radius: 6px; padding: 0.9rem 1rem; background: var(--bg); }
+        .stat .num { font-size: 1.6rem; font-weight: 700; }
+        .stat .label { color: var(--muted); font-size: 0.85rem; }
+        .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; }
+        .badge.ok { background: #dafbe1; color: #1a7f37; }
+        .badge.warn { background: #fff8c5; color: #9a6700; }
+        code { background: var(--bg); padding: 0.1rem 0.3rem; border-radius: 4px; font-size: 0.85em; }
+        footer { color: var(--muted); font-size: 0.8rem; padding: 1rem 1.5rem; border-top: 1px solid var(--border); margin-top: 2rem; }
+        .value-inline { display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; }
+    </style>
+</head>
+<body>
+
+<header class="top" th:fragment="header(active)">
+    <h1>Payroll Config Console</h1>
+    <nav>
+        <a th:classappend="${active == 'dashboard'} ? 'active'" href="/admin">Dashboard</a>
+        <a th:classappend="${active == 'attributes'} ? 'active'" href="/admin/attributes">Attributes</a>
+        <a th:classappend="${active == 'eligibility'} ? 'active'" href="/admin/eligibility-rules">Eligibility Rules</a>
+        <a th:classappend="${active == 'formula'} ? 'active'" href="/admin/formula-rules">Formula Rules</a>
+        <a th:classappend="${active == 'workflow'} ? 'active'" href="/admin/workflow">Workflow</a>
+    </nav>
+    <div style="margin-left:auto">
+        <form th:action="@{/admin/reload}" method="post"
+              onsubmit="return confirm('Discard ALL unsaved in-memory edits and reload the four JSON files from disk?');">
+            <button type="submit" class="small">Reload from Disk</button>
+        </form>
+    </div>
+</header>
+
+<main>
+    <div th:fragment="flash">
+        <div th:if="${flash}" class="flash" th:text="${flash}"></div>
+        <div th:if="${flashError}" class="flash error" th:text="${flashError}"></div>
+    </div>
+
+    <div th:fragment="errors-summary">
+        <div class="errors-summary" th:if="${validationErrors != null and !validationErrors.isEmpty()}">
+            <strong>Validation failed — nothing was applied or saved.</strong>
+            <ul>
+                <li th:each="e : ${validationErrors}" th:text="${e.message}"></li>
+            </ul>
+        </div>
+    </div>
+
+    <div th:fragment="persist-actions(page)">
+        <div class="card">
+            <strong>Persistence actions</strong>
+            <div class="muted" style="margin:0.3rem 0 0.7rem">
+                <b>Apply to Runtime</b> only updates the in-memory engine (next calculation uses it) — nothing touches
+                disk. <b>Save to File</b> also writes the four JSON files (with a <code>.bak</code> backup).
+            </div>
+            <div class="actions">
+                <button type="submit" name="action" value="validate">Validate</button>
+                <button type="submit" name="action" value="apply" class="primary">Apply to Runtime</button>
+                <button type="submit" name="action" value="save"
+                        th:disabled="${validationErrors != null and !validationErrors.isEmpty()}"
+                        th:title="${!writable} ? 'Save to File requires a filesystem payroll.config.location' : ''"
+                        th:classappend="${!writable} ? 'disabled'">Save to File</button>
+            </div>
+            <div th:if="${!writable}" class="muted">
+                Save to File is unavailable: the config was loaded from <code>classpath:sample-config/</code>.
+                Start with <code>--payroll.config.location=/absolute/fs/path</code> to enable disk persistence.
+            </div>
+        </div>
+    </div>
+
+    <script th:fragment="scripts">
+        /* Minimal vanilla JS for repeatable form rows and operator-dependent value inputs. */
+        function addRepeatable(templateId, containerSelector) {
+            var tpl = document.getElementById(templateId);
+            var maxIdx = -1;
+            document.querySelectorAll('[name]').forEach(function (el) {
+                var m = /\[(\d+)\]/.exec(el.name);
+                if (m) { var idx = parseInt(m[1], 10); if (idx > maxIdx) maxIdx = idx; }
+            });
+            var idx = maxIdx + 1;
+            document.querySelector(containerSelector).insertAdjacentHTML('beforeend', tpl.innerHTML.replace(/__IDX__/g, idx));
+            initValueInputs();
+        }
+        function removeRepeatable(button) {
+            var row = button.closest('.repeatable-row');
+            if (row && row.parentElement.querySelectorAll('.repeatable-row').length > 1) {
+                row.parentElement.removeChild(row);
+            }
+        }
+        function initValueInputs() {
+            document.querySelectorAll('[data-condition-row]').forEach(function (row) {
+                var op = row.querySelector('select.condition-operator');
+                if (op) { op.addEventListener('change', function () { updateValueContainer(row, op.value); }); updateValueContainer(row, op.value); }
+            });
+        }
+        function updateValueContainer(row, operator) {
+            var kind = (operator === 'IN') ? 'in' : (operator === 'BETWEEN' ? 'between' : 'single');
+            row.querySelectorAll('[data-value-kind]').forEach(function (c) {
+                c.style.display = (c.getAttribute('data-value-kind') === kind) ? '' : 'none';
+            });
+        }
+        document.addEventListener('DOMContentLoaded', initValueInputs);
+    </script>
+</main>
+
+<footer th:fragment="footer">
+    <span>Admin console is intentionally unauthenticated (MVP). Add authentication/authorization before any non-local deployment.</span>
+</footer>
+</body>
+</html>
