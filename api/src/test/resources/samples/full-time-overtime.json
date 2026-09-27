@@ -1,0 +1,23 @@
+{
+  "employeeId": "EMP-1001",
+  "period": {
+    "startDate": "2026-09-01",
+    "endDate": "2026-09-30"
+  },
+  "employee": {
+    "grade": 4,
+    "employmentType": "FULL_TIME",
+    "hourlyRate": 25.00,
+    "providentFundRate": 0.12,
+    "transportAllowance": 150.00,
+    "mealAllowance": 75.00,
+    "overtimeMultiplier": 1.5
+  },
+  "attendance": {
+    "standardHours": 40,
+    "overtimeHours": 4
+  },
+  "activities": [
+    { "activityType": "DELIVERY", "units": 0, "unitRate": 0 }
+  ]
+}

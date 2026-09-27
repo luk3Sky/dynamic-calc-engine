@@ -1,0 +1,23 @@
+{
+  "employeeId": "EMP-2002",
+  "period": {
+    "startDate": "2026-09-01",
+    "endDate": "2026-09-30"
+  },
+  "employee": {
+    "grade": 2,
+    "employmentType": "PART_TIME",
+    "hourlyRate": 20.00,
+    "providentFundRate": 0.12,
+    "transportAllowance": 0,
+    "mealAllowance": 0,
+    "overtimeMultiplier": 1.5
+  },
+  "attendance": {
+    "standardHours": 20,
+    "overtimeHours": 0
+  },
+  "activities": [
+    { "activityType": "SALES_UNIT", "units": 0, "unitRate": 0 }
+  ]
+}
